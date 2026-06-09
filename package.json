@@ -2,7 +2,7 @@
   "name": "gvs-gestao",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://168.196.132.70:8090",
+  "proxy": "http://localhost:8090",
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
     "@emotion/react": "^11.14.0",
