@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://SEU_IP_OU_DOMINIO:8090/:path*"
+    }
+  ]
+}
