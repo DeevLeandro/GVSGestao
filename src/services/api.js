@@ -1,41 +1,35 @@
-// src/services/api.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "",  
+  baseURL: "http://168.196.132.70:8090",
   headers: {
+    "X-Embarcadero-App-Secret": "DE1BA56B-43C5-469D-9BD2-4EB146EB8473",
     "Content-Type": "application/json",
-
   },
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
+// Interceptor para adicionar token se necessário
+api.interceptors.request.use(
+  (config) => {
+    return config;
+  },
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
     return Promise.reject(error);
   }
 );
 
+// Função para extrair dados do formato FireDAC
 export const extractFireDACData = (responseData) => {
-  if (responseData?.FDBS?.Manager?.TableList) {
+  if (responseData && responseData.FDBS && responseData.FDBS.Manager && responseData.FDBS.Manager.TableList) {
     const tables = responseData.FDBS.Manager.TableList;
-    if (tables.length > 0 && tables[0].RowList?.length > 0) {
-      return tables[0].RowList.map((row) => row.Original);
+    if (tables && tables.length > 0 && tables[0].RowList && tables[0].RowList.length > 0) {
+      return tables[0].RowList.map(row => row.Original);
     }
   }
-  return Array.isArray(responseData) ? responseData : [];
+  if (Array.isArray(responseData)) {
+    return responseData;
+  }
+  return [];
 };
 
 export default api;

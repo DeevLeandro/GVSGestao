@@ -1,21 +1,35 @@
-// api/proxy.js  ← esse arquivo roda no SERVIDOR da Vercel, não no navegador
-export default async function handler(req, res) {
-  const { path } = req.query;
-  const targetUrl = `${process.env.API_URL}/${Array.isArray(path) ? path.join("/") : path}`;
+import axios from "axios";
 
-  try {
-    const response = await fetch(targetUrl, {
-      method: req.method,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Embarcadero-App-Secret": process.env.EMS_APP_SECRET, 
-      },
-      body: req.method !== "GET" ? JSON.stringify(req.body) : undefined,
-    });
+const api = axios.create({
+  baseURL: "http://168.196.132.70:8090",
+  headers: {
+    "X-Embarcadero-App-Secret": "DE1BA56B-43C5-469D-9BD2-4EB146EB8473",
+    "Content-Type": "application/json",
+  },
+});
 
-    const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao conectar com o servidor" });
+// Interceptor para adicionar token se necessário
+api.interceptors.request.use(
+  (config) => {
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-}
+);
+
+// Função para extrair dados do formato FireDAC
+export const extractFireDACData = (responseData) => {
+  if (responseData && responseData.FDBS && responseData.FDBS.Manager && responseData.FDBS.Manager.TableList) {
+    const tables = responseData.FDBS.Manager.TableList;
+    if (tables && tables.length > 0 && tables[0].RowList && tables[0].RowList.length > 0) {
+      return tables[0].RowList.map(row => row.Original);
+    }
+  }
+  if (Array.isArray(responseData)) {
+    return responseData;
+  }
+  return [];
+};
+
+export default api;
